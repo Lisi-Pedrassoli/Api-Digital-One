@@ -52,3 +52,40 @@ def register():
         return jsonify({"error": "Email já cadastrado"}), 400
     finally:
         conn.close()
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE email=? AND password=?", (email,password))
+    user = cur.fetchone()
+    conn.close()
+
+    if user:
+        return jsonify({"message": "Login realizado","user": dict(user)})
+    else:
+        return jsonify({"error": "Email ou senha incorretos"}),401
+
+@app.route('/recover', methods=['POST'])
+def recover():
+    data = request.json
+    email = data.get('email')
+    new_password = data.get('new_password')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE email=?", (email,))
+    user = cur.fetchone()
+
+    if user:
+        cur.execute("UPDATE users SET password=? WHERE email=?",(new_password, email))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Senha atualizada!"})
+    else:
+        conn.close()
+        return jsonify({"error": "Email não encontrado"}),404
