@@ -117,3 +117,17 @@ def update_password():
     conn.close()
 
     return jsonify("messege": "Senha atualizada!")
+
+@app.route("/post", methods=['POST'])
+def create_post():
+    data = request.json
+    user_id = data.get('user_id')
+    description = data.get('description')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO posts (user_id, description) VALUES (?, ?)",(user_id, description))
+    conn.commit()
+    conn.close()
+
+    return jsonify("messege": "Post criado com sucesso!")
