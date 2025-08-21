@@ -88,4 +88,32 @@ def recover():
         return jsonify({"message": "Senha atualizada!"})
     else:
         conn.close()
-        return jsonify({"error": "Email não encontrado"}),404
+        return jsonify({"error": "Email não encontrado!"}),404
+
+@app.route('/update_name', methods=['POST'])
+def update_name():
+    data = request.json
+    user_id = data.get('user_id')
+    new_name = data.get('new_name')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET name=? WHERE id=?", (new_name, user_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify("messege": "Nome atualizado!")
+
+@app.route('/update_password', methods=['POST'])
+def update_password():
+    data = request.json
+    user_id = data.get('user_id')
+    new_password = data.get('new_password')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET password=? WHERE id=?", (new_password, user_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify("messege": "Senha atualizada!")
