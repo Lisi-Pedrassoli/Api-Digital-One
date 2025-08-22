@@ -163,4 +163,26 @@ def edit_post(post_id):
         return jsonify({"messege": "Post atualizado!"})
     else:
         conn.close()
-        return jsonify({"messege": "Você não pode atualizar esse post"})
+        return jsonify({"messege": "Você não pode editar esse post"}),403
+
+@app.route("/post/<int:post_id>", methods=["DELETE"])
+def delete_post(post_id):
+    data = request.json
+    user_id = data.get('user_id')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM posts WHERE id=? AND user_id=?", (post_id, user_id))
+    post = cur.fetchone()
+
+    if post:
+        cur.execute("DELETE FROM posts WHERE id=?", (post_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"messege": "Post excluído!"})
+    else:
+        conn.close()
+        return jsonify({"error": "Você não pode excluir este post"}),403
+
+if __name__ == '__main__':
+    app.run(debug=True)
