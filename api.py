@@ -102,7 +102,7 @@ def update_name():
     conn.commit()
     conn.close()
 
-    return jsonify("messege": "Nome atualizado!")
+    return jsonify({"messege": "Nome atualizado!"})
 
 @app.route('/update_password', methods=['POST'])
 def update_password():
@@ -116,7 +116,7 @@ def update_password():
     conn.commit()
     conn.close()
 
-    return jsonify("messege": "Senha atualizada!")
+    return jsonify({"messege": "Senha atualizada!"})
 
 @app.route("/post", methods=['POST'])
 def create_post():
@@ -130,4 +130,37 @@ def create_post():
     conn.commit()
     conn.close()
 
-    return jsonify("messege": "Post criado com sucesso!")
+    return jsonify({"messege": "Post criado com sucesso!"})
+
+@app.route("/posts", methods=["GET"])
+def list_posts():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+    SELECT posts.id, posts.description, users.name, users.id as user_id
+    FROM posts JOIN users ON posts.user_id = users.id
+    """)
+    posts = cur.fetchall()
+    conn.close()
+
+    return jsonify([dict(p) for p in posts])
+
+@app.route("/post/<int:post_id>", methods=["PUT"])
+def edit_post(post_id):
+    data = request.json
+    user_id = data.get('user_id')
+    description = data.get('description')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM posts WHERE id=? AND user_id=?", (post_id, user_id))
+    post = cur.fetchone()
+
+    if post:
+        cur.execute("UPDATE posts SET description=? WHERE id=?", (description, post_id))
+        conn.commit()
+        conn.close()
+        return jsonify({"messege": "Post atualizado!"})
+    else:
+        conn.close()
+        return jsonify({"messege": "Você não pode atualizar esse post"})
